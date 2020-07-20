@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- 1.setting db properties config: ${url} -->
+	<!-- <context:property-placeholder location="classpath:jdbc.properties" /> -->
+	<bean class="com.imooc.o2o.util.EncryptPropertyPlaceholderConfigurer"> 
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:redis.properties</value>
+			</list>
+		</property>
+		<property name="fileEncoding" value="UTF-8" />
+	</bean>
+	
+	<!-- 2.db connection pool -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- connection pool config -->
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		
+		<!-- c3p0 connection pool private config -->
+		<property name="maxPoolSize" value="30" />
+		<property name="minPoolSize" value="10" />
+		<property name="initialPoolSize" value="10" />
+		<!-- close connection not auto commit -->
+		<property name="autoCommitOnClose" value="false" />
+		<!-- connection timeout -->
+		<property name="checkoutTimeout" value="10000" />
+		<!-- connection failed reconnect limit -->
+		<property name="acquireRetryAttempts" value="2" />
+	</bean>
+	
+	<!-- 3.sqlSessionFactory object config  -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- inject db connection pool -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- mybaties config file:mybatis-config.xml -->
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+		<!-- scan entity package -->
+		<property name="typeAliasesPackage" value="com.imooc.o2o.entity" />
+		<!-- scan sql config file:mapper xml file -->
+		<property name="mapperLocations" value="classpath:mapper/*.xml" />		
+	</bean>
+	
+	<!-- 4.setting scan Dao api package, dynamic Dao api, inject to spring container -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- inject sqlSessionFactory -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<!-- scan Dao api package -->
+		<property name="basePackage" value="com.imooc.o2o.dao" />
+	</bean>
+	
+</beans>
